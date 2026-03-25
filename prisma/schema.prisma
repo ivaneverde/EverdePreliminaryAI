@@ -1,0 +1,57 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model InventoryItem {
+  sku               String   @id
+  name              String
+  quality          String?
+  viewPlantUrl     String?
+  availabilityQty  Int
+  priceCents       Int
+  currency         String   @default("USD")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  orderLines       PreliminaryOrderLine[]
+}
+
+model PreliminaryOrder {
+  // We use an incrementing integer as both the primary key and order number.
+  orderNumber              Int                      @id @default(autoincrement())
+  customerName             String
+  contact                  String?
+  salesRepName             String?
+  salesRepEmail            String?
+  shipTo                   String
+  preferredDeliveryDate   DateTime?
+  poNumber                 String?
+  status                   String                    @default("PRELIMINARY")
+  createdAt                DateTime                  @default(now())
+
+  lines                    PreliminaryOrderLine[]
+}
+
+model PreliminaryOrderLine {
+  id                Int                 @id @default(autoincrement())
+  orderId          Int
+  sku               String
+  itemName         String
+  unitPriceCents   Int
+  quantity         Int
+  lineTotalCents   Int
+
+  order             PreliminaryOrder @relation(fields: [orderId], references: [orderNumber], onDelete: Cascade)
+  inventoryItem    InventoryItem?  @relation(fields: [sku], references: [sku], onDelete: Restrict)
+
+  createdAt         DateTime        @default(now())
+
+  @@index([orderId])
+  @@index([sku])
+}
+
