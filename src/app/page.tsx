@@ -93,6 +93,25 @@ export default function Page() {
     }
   }
 
+  async function fetchInventoryPage(params: URLSearchParams, attempt = 0): Promise<InventoryItem[]> {
+    const url = `/api/inventory?${params.toString()}`;
+    try {
+      const res = await fetch(url, { method: "GET", cache: "no-store" });
+      if (!res.ok) {
+        const errText = await res.text().catch(() => "");
+        throw new Error(`Inventory fetch failed (${res.status}). ${errText.slice(0, 200)}`);
+      }
+      const data = await res.json();
+      return (data.items ?? []) as InventoryItem[];
+    } catch (e) {
+      if (attempt < 3) {
+        await new Promise((r) => window.setTimeout(r, 800 * (attempt + 1)));
+        return fetchInventoryPage(params, attempt + 1);
+      }
+      throw e;
+    }
+  }
+
   async function loadInventory() {
     setInventoryLoading(true);
     setInventoryError(null);
@@ -107,13 +126,7 @@ export default function Page() {
         params.set("limit", String(pageSize));
         params.set("offset", String(offset));
 
-        const res = await fetch(`/api/inventory?${params.toString()}`, {
-          method: "GET",
-          cache: "no-store",
-        });
-        if (!res.ok) throw new Error(`Inventory fetch failed (${res.status}).`);
-        const data = await res.json();
-        const batch = (data.items ?? []) as InventoryItem[];
+        const batch = await fetchInventoryPage(params);
         acc.push(...batch);
         if (batch.length < pageSize) break;
         offset += pageSize;
@@ -215,6 +228,7 @@ export default function Page() {
       setImportInventoryMsg(
         `Imported ${data.totalParsed} rows (${data.created} created, ${data.updated} updated).`
       );
+      await new Promise((r) => window.setTimeout(r, 1500));
       await loadInventory();
     } catch (e) {
       setImportInventoryErr((e as Error).message ?? "Inventory import failed.");
