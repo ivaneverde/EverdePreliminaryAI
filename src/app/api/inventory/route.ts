@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { getInventoryItem, InventoryListQuerySchema, listInventory } from "@/lib/inventory";
 
+export const maxDuration = 60;
+
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const sku = url.searchParams.get("sku");
@@ -14,6 +16,7 @@ export async function GET(req: Request) {
     availableOnly: url.searchParams.get("availableOnly") ?? undefined,
     filter: url.searchParams.get("filter") ?? undefined,
     limit: url.searchParams.get("limit") ?? undefined,
+    offset: url.searchParams.get("offset") ?? undefined,
   };
 
   const parsed = InventoryListQuerySchema.parse(query);

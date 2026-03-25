@@ -97,15 +97,29 @@ export default function Page() {
     setInventoryLoading(true);
     setInventoryError(null);
     try {
-      const params = new URLSearchParams();
-      if (inventoryQuery.trim()) params.set("q", inventoryQuery.trim());
-      params.set("filter", inventoryFilter);
-      params.set("limit", "5000");
+      const pageSize = 250;
+      const acc: InventoryItem[] = [];
+      let offset = 0;
+      while (true) {
+        const params = new URLSearchParams();
+        if (inventoryQuery.trim()) params.set("q", inventoryQuery.trim());
+        params.set("filter", inventoryFilter);
+        params.set("limit", String(pageSize));
+        params.set("offset", String(offset));
 
-      const res = await fetch(`/api/inventory?${params.toString()}`, { method: "GET" });
-      if (!res.ok) throw new Error(`Inventory fetch failed (${res.status}).`);
-      const data = await res.json();
-      setInventory(data.items ?? []);
+        const res = await fetch(`/api/inventory?${params.toString()}`, {
+          method: "GET",
+          cache: "no-store",
+        });
+        if (!res.ok) throw new Error(`Inventory fetch failed (${res.status}).`);
+        const data = await res.json();
+        const batch = (data.items ?? []) as InventoryItem[];
+        acc.push(...batch);
+        if (batch.length < pageSize) break;
+        offset += pageSize;
+        if (offset > 50_000) break;
+      }
+      setInventory(acc);
     } catch (e) {
       setInventoryError((e as Error).message ?? "Failed to load inventory.");
     } finally {
