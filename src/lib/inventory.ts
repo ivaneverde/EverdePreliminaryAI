@@ -23,11 +23,12 @@ export async function listInventory(query: InventoryListQuery) {
   const where: Prisma.InventoryItemWhereInput = {};
   const q = parsed.q?.trim();
 
+  // PostgreSQL: default `contains` is case-sensitive (unlike typical SQLite feel). Match local UX.
   if (q) {
     where.OR = [
-      { sku: { contains: q } },
-      { name: { contains: q } },
-      { quality: { contains: q } },
+      { sku: { contains: q, mode: "insensitive" } },
+      { name: { contains: q, mode: "insensitive" } },
+      { quality: { contains: q, mode: "insensitive" } },
     ];
   }
 

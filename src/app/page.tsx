@@ -335,7 +335,7 @@ export default function Page() {
               <input
                 value={inventoryQuery}
                 onChange={(e) => setInventoryQuery(e.target.value)}
-                placeholder="Search by SKU, name, or quality..."
+                placeholder="Search by SKU, name, or quality… (press Enter)"
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     e.preventDefault();
