@@ -39,6 +39,8 @@ export async function listInventory(query: InventoryListQuery) {
       sku: true,
       name: true,
       quality: true,
+      viewPlantUrl: true,
+      farmCode: true,
       availabilityQty: true,
       priceCents: true,
       currency: true,
@@ -48,8 +50,8 @@ export async function listInventory(query: InventoryListQuery) {
   const metadata = await readInventoryMetaMap();
   const withMeta = items.map((item) => ({
     ...item,
-    viewPlantUrl: metadata[item.sku]?.viewPlantUrl ?? null,
-    farmCode: metadata[item.sku]?.farmCode ?? null,
+    viewPlantUrl: item.viewPlantUrl ?? metadata[item.sku]?.viewPlantUrl ?? null,
+    farmCode: item.farmCode ?? metadata[item.sku]?.farmCode ?? null,
   }));
 
   const filtered = withMeta.filter((item) => {
@@ -71,6 +73,8 @@ export async function getInventoryItem(sku: string) {
       sku: true,
       name: true,
       quality: true,
+      viewPlantUrl: true,
+      farmCode: true,
       availabilityQty: true,
       priceCents: true,
       currency: true,
@@ -80,8 +84,8 @@ export async function getInventoryItem(sku: string) {
   const metadata = await readInventoryMetaMap();
   return {
     ...item,
-    viewPlantUrl: metadata[item.sku]?.viewPlantUrl ?? null,
-    farmCode: metadata[item.sku]?.farmCode ?? null,
+    viewPlantUrl: item.viewPlantUrl ?? metadata[item.sku]?.viewPlantUrl ?? null,
+    farmCode: item.farmCode ?? metadata[item.sku]?.farmCode ?? null,
   };
 }
 

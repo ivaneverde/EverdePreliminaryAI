@@ -12,6 +12,7 @@ model InventoryItem {
   name              String
   quality          String?
   viewPlantUrl     String?
+  farmCode         String?
   availabilityQty  Int
   priceCents       Int
   currency         String   @default("USD")
