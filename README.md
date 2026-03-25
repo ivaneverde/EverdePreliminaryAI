@@ -93,6 +93,8 @@ SMTP configuration:
 
 **Microsoft 365 (good when you already use Everde on M365 — no new DNS vendor):** use `EMAIL_SMTP_HOST=smtp.office365.com`, `EMAIL_SMTP_PORT=587`, `EMAIL_SMTP_SECURE=false`, `EMAIL_SMTP_USER` / `EMAIL_SMTP_PASS` for a **dedicated mailbox** (e.g. `preliminary-orders@everde.com`), and `EMAIL_FROM` with that same address (or an alias allowed for that mailbox). An Exchange admin must turn on **[SMTP AUTH for that mailbox](https://learn.microsoft.com/en-us/exchange/clients-and-mobile-in-exchange-online/authenticated-client-smtp-submission)**. Accounts with MFA may need an **app password** or a future **OAuth** integration if basic auth is disabled by policy.
 
+**Gmail (interim / demo when M365 SMTP AUTH is disabled):** use `EMAIL_SMTP_HOST=smtp.gmail.com`, `EMAIL_SMTP_PORT=587`, `EMAIL_SMTP_SECURE=false`, `EMAIL_SMTP_USER` = your full `you@gmail.com`, `EMAIL_SMTP_PASS` = a **[Google App Password](https://support.google.com/accounts/answer/185833)** (requires 2-Step Verification on the Google account). Set `EMAIL_FROM` to that same address. Sending volume is subject to [Gmail limits](https://support.google.com/a/answer/166852).
+
 **Internal relay (office only):**
 
 - `EMAIL_SMTP_HOST` — e.g. internal relay `10.182.1.25`

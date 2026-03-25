@@ -45,15 +45,23 @@ function smtpHostLooksLikeMicrosoft365(host: string): boolean {
   return h === "smtp.office365.com" || h === "smtp-legacy.office365.com";
 }
 
+function smtpHostLooksLikeGmail(host: string): boolean {
+  return host.toLowerCase() === "smtp.gmail.com";
+}
+
 /**
  * True when outbound email can be attempted.
- * Resend / Microsoft 365 require auth; internal relays may omit USER/PASS.
+ * Resend / Microsoft 365 / Gmail require auth; internal relays may omit USER/PASS.
  */
 export function isSmtpConfigured(): boolean {
   const host = env("EMAIL_SMTP_HOST");
   const from = env("EMAIL_FROM");
   if (!host || !from) return false;
-  if (smtpHostLooksLikeResend(host) || smtpHostLooksLikeMicrosoft365(host)) {
+  if (
+    smtpHostLooksLikeResend(host) ||
+    smtpHostLooksLikeMicrosoft365(host) ||
+    smtpHostLooksLikeGmail(host)
+  ) {
     return Boolean(env("EMAIL_SMTP_USER") && env("EMAIL_SMTP_PASS"));
   }
   return true;
@@ -66,7 +74,9 @@ function createTransport() {
     throw new Error("EMAIL_SMTP_HOST and EMAIL_FROM must be set to send mail.");
   }
 
-  const port = Number(env("EMAIL_SMTP_PORT") ?? "25");
+  const port = Number(
+    env("EMAIL_SMTP_PORT") ?? (smtpHostLooksLikeGmail(host) ? "587" : "25")
+  );
   const secure = env("EMAIL_SMTP_SECURE") === "true";
   const user = env("EMAIL_SMTP_USER");
   const pass = env("EMAIL_SMTP_PASS");
@@ -97,7 +107,8 @@ function createTransport() {
   }
 
   const office365 = smtpHostLooksLikeMicrosoft365(host);
-  const requireTls = office365 || envBool("EMAIL_SMTP_REQUIRE_TLS", false);
+  const gmail = smtpHostLooksLikeGmail(host);
+  const requireTls = office365 || gmail || envBool("EMAIL_SMTP_REQUIRE_TLS", false);
 
   return nodemailer.createTransport({
     host,
@@ -215,6 +226,10 @@ export async function sendPreliminaryOrderEmailToSalesRep(
       if (h && smtpHostLooksLikeMicrosoft365(h) && (!env("EMAIL_SMTP_USER") || !env("EMAIL_SMTP_PASS"))) {
         detail +=
           " For Microsoft 365, set EMAIL_SMTP_USER and EMAIL_SMTP_PASS to a mailbox that has SMTP AUTH enabled.";
+      }
+      if (h && smtpHostLooksLikeGmail(h) && (!env("EMAIL_SMTP_USER") || !env("EMAIL_SMTP_PASS"))) {
+        detail +=
+          " For Gmail, set EMAIL_SMTP_USER to your full Gmail address and EMAIL_SMTP_PASS to a Google App Password.";
       }
       return { ok: false, error: `SMTP is not configured. ${detail}` };
     }
