@@ -93,13 +93,29 @@ function extractRows(
     const farmCode = cleanFarmCode(cells[idx(index, "FARM")]);
     const commonName = cells[idx(index, "COMMON NAME")];
     const botanicalName = cells[idx(index, "BOTANICAL NAME")];
-    const name = firstNonEmpty(commonName, botanicalName, sku);
+    // Keep both common + botanical in `name` so search matches trade names in either column
+    // (e.g. "Golden" in botanical while common is just "Pothos").
+    const name =
+      joinNonEmpty(" ", commonName, botanicalName) ?? firstNonEmpty(botanicalName, commonName, sku);
     const availabilityQty = parseInteger(cells[idx(index, "SALEABLE QTY")]);
     const parsedPriceCents = parsePriceToCents(cells[idx(index, "PRICE")]);
     const priceCents = Number.isFinite(parsedPriceCents) && parsedPriceCents >= 0 ? parsedPriceCents : 0;
     const specification = cells[idx(index, "SPECIFICATION")];
     const category = cells[idx(index, "CATEGORY")];
-    const quality = firstNonEmpty(specification, category, null);
+    const description = cells[idx(index, "DESCRIPTION")];
+    const longDescription = cells[idx(index, "LONG DESCRIPTION")];
+    const itemDescription = cells[idx(index, "ITEM DESCRIPTION")];
+    // Previously only the first of spec/category was kept, so words like "Golden" in CATEGORY
+    // were dropped when SPECIFICATION was a short grade (e.g. "A").
+    const quality =
+      joinNonEmpty(
+        " | ",
+        specification,
+        category,
+        description,
+        longDescription,
+        itemDescription
+      ) ?? firstNonEmpty(specification, category, description, longDescription, itemDescription, null);
     const viewPlantUrl = extractPlantImageHref($, cellElems, idx(index, "PLANT IMAGE"));
 
     if (!sku || !name) continue;
@@ -170,6 +186,15 @@ function firstNonEmpty<T>(...values: Array<T | null | undefined>) {
     return v;
   }
   return null;
+}
+
+/** Join string parts with `sep`; returns null if every part is empty. */
+function joinNonEmpty(sep: string, ...parts: Array<string | null | undefined>): string | null {
+  const trimmed = parts
+    .map((p) => (typeof p === "string" ? p.trim() : ""))
+    .filter((p) => p.length > 0);
+  if (trimmed.length === 0) return null;
+  return trimmed.join(sep);
 }
 
 function dedupeBySku(rows: ImportedInventoryRow[]) {
