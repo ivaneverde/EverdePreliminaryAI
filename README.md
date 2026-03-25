@@ -54,7 +54,7 @@ Create an empty repo on GitHub first (**no** README/license added by GitHub, or 
 | `DATABASE_URL` | Yes | Neon pooled Postgres URL (`sslmode=require`). |
 | `OPENAI_API_KEY` | Yes | For AI chat. |
 
-Optional (same names as `.env.example`): `EMAIL_*`, `ECE_*`, `ORACLE_*`, `EMAIL_ATTACH_PDF`, `COMPANY_LOGO_PATH`.
+Optional: `EMAIL_*` (use **Resend** on Vercel — see **Email** section below), `ECE_*`, `ORACLE_*`, `EMAIL_ATTACH_PDF`, `COMPANY_LOGO_PATH`.
 
 5. Deploy. The build runs `npm run build:vercel` (`prisma migrate deploy` → `next build`) per `vercel.json`.
 
@@ -88,6 +88,10 @@ On checkout, saving **sales rep name + email** sends a plain-text + HTML summary
 - Optional prefilled **`PreliminaryOrder_<n>_OrderTemplate.xlsm`** if `ORACLE_ORDER_TEMPLATE_PATH` points to your macro template (`src/lib/oracleTemplateWorkbook.ts`) **and** `ORACLE_ATTACH_TEMPLATE_EMAIL=true`.
 
 SMTP configuration:
+
+**Resend (Vercel / internet):** keep **Nodemailer**; set variables from [Resend + Nodemailer](https://resend.com/docs/send-with-nodemailer-smtp): `EMAIL_SMTP_HOST=smtp.resend.com`, `EMAIL_SMTP_PORT=465`, `EMAIL_SMTP_SECURE=true`, `EMAIL_SMTP_USER=resend`, `EMAIL_SMTP_PASS=<API key>`, and `EMAIL_FROM` using a **domain you verified** in Resend (e.g. `Everde <orders@everde.com>`).
+
+**Internal relay (office only):**
 
 - `EMAIL_SMTP_HOST` — e.g. internal relay `10.182.1.25`
 - `EMAIL_SMTP_PORT` — e.g. `25`

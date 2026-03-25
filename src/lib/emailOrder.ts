@@ -35,9 +35,23 @@ function envAttachmentMode(): "csv" | "xlsm" | "both" {
   return "xlsm";
 }
 
-/** True when host + from are set (typical internal relay: port 25, no auth). */
+function smtpHostLooksLikeResend(host: string): boolean {
+  const h = host.toLowerCase();
+  return h === "smtp.resend.com" || h.endsWith(".resend.com");
+}
+
+/**
+ * True when outbound email can be attempted.
+ * Resend (and most cloud SMTP) requires auth; internal relays may omit USER/PASS.
+ */
 export function isSmtpConfigured(): boolean {
-  return Boolean(env("EMAIL_SMTP_HOST") && env("EMAIL_FROM"));
+  const host = env("EMAIL_SMTP_HOST");
+  const from = env("EMAIL_FROM");
+  if (!host || !from) return false;
+  if (smtpHostLooksLikeResend(host)) {
+    return Boolean(env("EMAIL_SMTP_USER") && env("EMAIL_SMTP_PASS"));
+  }
+  return true;
 }
 
 function createTransport() {
@@ -182,7 +196,14 @@ export async function sendPreliminaryOrderEmailToSalesRep(
   try {
     const from = env("EMAIL_FROM");
     if (!from || !isSmtpConfigured()) {
-      return { ok: false, error: "SMTP is not configured (EMAIL_SMTP_HOST / EMAIL_FROM)." };
+      const h = env("EMAIL_SMTP_HOST");
+      let detail =
+        "Set EMAIL_SMTP_HOST and EMAIL_FROM.";
+      if (h && smtpHostLooksLikeResend(h) && (!env("EMAIL_SMTP_USER") || !env("EMAIL_SMTP_PASS"))) {
+        detail +=
+          " For Resend, set EMAIL_SMTP_USER=resend and EMAIL_SMTP_PASS to your API key.";
+      }
+      return { ok: false, error: `SMTP is not configured. ${detail}` };
     }
 
     const transport = createTransport();
