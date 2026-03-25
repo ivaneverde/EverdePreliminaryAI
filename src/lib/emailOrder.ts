@@ -40,15 +40,20 @@ function smtpHostLooksLikeResend(host: string): boolean {
   return h === "smtp.resend.com" || h.endsWith(".resend.com");
 }
 
+function smtpHostLooksLikeMicrosoft365(host: string): boolean {
+  const h = host.toLowerCase();
+  return h === "smtp.office365.com" || h === "smtp-legacy.office365.com";
+}
+
 /**
  * True when outbound email can be attempted.
- * Resend (and most cloud SMTP) requires auth; internal relays may omit USER/PASS.
+ * Resend / Microsoft 365 require auth; internal relays may omit USER/PASS.
  */
 export function isSmtpConfigured(): boolean {
   const host = env("EMAIL_SMTP_HOST");
   const from = env("EMAIL_FROM");
   if (!host || !from) return false;
-  if (smtpHostLooksLikeResend(host)) {
+  if (smtpHostLooksLikeResend(host) || smtpHostLooksLikeMicrosoft365(host)) {
     return Boolean(env("EMAIL_SMTP_USER") && env("EMAIL_SMTP_PASS"));
   }
   return true;
@@ -91,12 +96,16 @@ function createTransport() {
     tls.servername = tlsServername;
   }
 
+  const office365 = smtpHostLooksLikeMicrosoft365(host);
+  const requireTls = office365 || envBool("EMAIL_SMTP_REQUIRE_TLS", false);
+
   return nodemailer.createTransport({
     host,
     port: Number.isFinite(port) ? port : 25,
     secure,
     auth: user && pass ? { user, pass } : undefined,
     tls,
+    ...(requireTls ? { requireTLS: true as const } : {}),
   });
 }
 
@@ -202,6 +211,10 @@ export async function sendPreliminaryOrderEmailToSalesRep(
       if (h && smtpHostLooksLikeResend(h) && (!env("EMAIL_SMTP_USER") || !env("EMAIL_SMTP_PASS"))) {
         detail +=
           " For Resend, set EMAIL_SMTP_USER=resend and EMAIL_SMTP_PASS to your API key.";
+      }
+      if (h && smtpHostLooksLikeMicrosoft365(h) && (!env("EMAIL_SMTP_USER") || !env("EMAIL_SMTP_PASS"))) {
+        detail +=
+          " For Microsoft 365, set EMAIL_SMTP_USER and EMAIL_SMTP_PASS to a mailbox that has SMTP AUTH enabled.";
       }
       return { ok: false, error: `SMTP is not configured. ${detail}` };
     }

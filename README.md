@@ -91,6 +91,8 @@ SMTP configuration:
 
 **Resend (Vercel / internet):** keep **Nodemailer**; set variables from [Resend + Nodemailer](https://resend.com/docs/send-with-nodemailer-smtp): `EMAIL_SMTP_HOST=smtp.resend.com`, `EMAIL_SMTP_PORT=465`, `EMAIL_SMTP_SECURE=true`, `EMAIL_SMTP_USER=resend`, `EMAIL_SMTP_PASS=<API key>`, and `EMAIL_FROM` using a **domain you verified** in Resend (e.g. `Everde <orders@everde.com>`).
 
+**Microsoft 365 (good when you already use Everde on M365 — no new DNS vendor):** use `EMAIL_SMTP_HOST=smtp.office365.com`, `EMAIL_SMTP_PORT=587`, `EMAIL_SMTP_SECURE=false`, `EMAIL_SMTP_USER` / `EMAIL_SMTP_PASS` for a **dedicated mailbox** (e.g. `preliminary-orders@everde.com`), and `EMAIL_FROM` with that same address (or an alias allowed for that mailbox). An Exchange admin must turn on **[SMTP AUTH for that mailbox](https://learn.microsoft.com/en-us/exchange/clients-and-mobile-in-exchange-online/authenticated-client-smtp-submission)**. Accounts with MFA may need an **app password** or a future **OAuth** integration if basic auth is disabled by policy.
+
 **Internal relay (office only):**
 
 - `EMAIL_SMTP_HOST` — e.g. internal relay `10.182.1.25`
