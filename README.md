@@ -23,13 +23,56 @@ Public test web app that shows inventory, builds a cart, and creates preliminary
 
 **Company logo (PDF + header):** place `public/company-logo.png` in the repo, or set `COMPANY_LOGO_PATH` to an absolute path on the server.
 
-## Deploying on Vercel
+## Deploying on Vercel (step by step)
 
-1. Push this repo to GitHub and import the project in [Vercel](https://vercel.com).
-2. Add environment variables in the Vercel project (at minimum `DATABASE_URL`, `OPENAI_API_KEY`; add email/Oracle vars if you use them).
-3. `vercel.json` sets **Build Command** to `npm run build:vercel`, which runs `prisma migrate deploy` then `next build`, so the database schema stays in sync on each production deploy.
-4. Use a **pooled** Postgres URL if your provider recommends it for serverless (e.g. Neon’s pooled connection string with `sslmode=require`).
-5. **Excel COM prefill** (`ORACLE_TEMPLATE_PREFILL=true`) does not run on Vercel; use `false` and attach the original template or CSV-only email mode.
+### 1. Create a PostgreSQL database (Neon is simplest)
+
+1. Sign up at [neon.tech](https://neon.tech) and create a project.
+2. Copy the **connection string** (use the one Neon labels for **serverless** / **pooled** if offered). It should look like `postgresql://…@ep-….neon.tech/neondb?sslmode=require`.
+3. Keep it secret — you will paste it into Vercel as `DATABASE_URL`.
+
+### 2. Push this folder to GitHub
+
+You do **not** need GitHub CLI. In Git for Windows **Git Bash** or PowerShell from the project root (`sales-ai-agent`):
+
+```bash
+git remote add origin https://github.com/YOUR_USER/YOUR_REPO.git
+git push -u origin master
+```
+
+Create an empty repo on GitHub first (**no** README/license added by GitHub, or pull before push). If your default branch is `main`, rename or use `git push -u origin main`.
+
+### 3. Import into Vercel
+
+1. [vercel.com](https://vercel.com) → **Add New…** → **Project** → import the GitHub repo.
+2. **Framework Preset:** Next.js (auto-detected).
+3. **Root Directory:** leave default (repo root), unless this app lives in a subfolder.
+4. **Environment Variables** — add at least:
+
+| Name | Required | Notes |
+|------|----------|--------|
+| `DATABASE_URL` | Yes | Neon pooled Postgres URL (`sslmode=require`). |
+| `OPENAI_API_KEY` | Yes | For AI chat. |
+
+Optional (same names as `.env.example`): `EMAIL_*`, `ECE_*`, `ORACLE_*`, `EMAIL_ATTACH_PDF`, `COMPANY_LOGO_PATH`.
+
+5. Deploy. The build runs `npm run build:vercel` (`prisma migrate deploy` → `next build`) per `vercel.json`.
+
+### 4. Seed sample inventory (once per database)
+
+Migrations run on deploy, but **seed data** is not automatic. On your PC, with the **same** `DATABASE_URL` as production:
+
+```bash
+npx prisma db seed
+```
+
+(Requires `npm install` and `DATABASE_URL` set in the shell or `.env`.)
+
+### 5. Limitations on Vercel (same as before)
+
+- **`ORACLE_TEMPLATE_PREFILL=true`** does not work (no Excel on Linux). Use `false` or omit; CSV/PDF email attachments still work.
+- **`ORACLE_ORDER_TEMPLATE_PATH`** must point to a file **on the server** — Vercel has no persistent disk for your desktop `.xlsm`. For demos, rely on **CSV + PDF** attachments unless you add cloud storage later.
+- **Internal SMTP** (e.g. `10.x.x.x`) may be unreachable from Vercel; use a public relay or test without email.
 
 SMTP from Vercel’s cloud to an **internal relay IP** often fails unless the network allows it; for an executive demo, test email from the deployed URL or use a public SMTP/API provider.
 
