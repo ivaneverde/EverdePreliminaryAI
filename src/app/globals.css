@@ -201,6 +201,18 @@ th {
   font-weight: 600;
 }
 
+.inventory-table-wrap {
+  max-height: 700px;
+  overflow: auto;
+}
+
+.inventory-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--panel);
+}
+
 .pill {
   display: inline-block;
   padding: 7px 12px;

@@ -383,8 +383,8 @@ export default function Page() {
           </div>
           {inventoryError ? <div className="toast toast-error">{inventoryError}</div> : null}
 
-          <div style={{ maxHeight: 700, overflow: "auto" }}>
-            <table>
+          <div className="inventory-table-wrap">
+            <table className="inventory-table">
               <thead>
                 <tr>
                   <th>Item</th>
