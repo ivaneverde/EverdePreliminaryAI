@@ -80,6 +80,23 @@ SMTP from Vercel’s cloud to an **internal relay IP** often fails unless the ne
 
 Upload `.xls` exports from Oracle BI Publisher (HTML table) via the admin import UI (password in app). Implementation: `src/app/api/inventory/import/route.ts` and `src/lib/inventoryImport.ts`.
 
+### Automated daily import (Outlook/Power Automate)
+
+You can automate import from a mailbox folder like `Inbox/AInventory`:
+
+1. Set `INVENTORY_AUTOMATION_TOKEN` in Vercel (and local `.env` if testing locally).
+2. Use a scheduled Power Automate flow (e.g. 3:00 AM PST) that:
+   - Reads newest report mail from `Inbox/AInventory`
+   - Gets attachment content
+   - `POST`s to `https://<your-app>/api/inventory/import/automated`
+   - Header: `Authorization: Bearer <INVENTORY_AUTOMATION_TOKEN>`
+3. Payload options:
+   - JSON (recommended): `{ "fileName": "report.xls", "fileContentBase64": "<base64>" }`
+   - Multipart form-data: field `file`
+4. Move processed messages to a `Processed` folder to avoid duplicate runs.
+
+The endpoint supports direct inventory files (`.xls`, `.xlsx`, `.html`) and nested mail attachments (`.eml`, `.msg`) that contain the actual report file. It returns the same counters as manual import (`totalParsed`, `created`, `updated`) plus `automated`, `fileName`, `source`, and `importedAtUtc`.
+
 ## Email (preliminary order to sales rep)
 
 On checkout, saving **sales rep name + email** sends a plain-text + HTML summary via **Nodemailer**, with:
