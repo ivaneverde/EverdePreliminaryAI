@@ -225,6 +225,22 @@ export default function Page() {
   }
 
   function buildVoiceSummary(text: string) {
+    const joinSpokenList = (items: string[]) => {
+      if (items.length <= 1) return items[0] ?? "";
+      if (items.length === 2) return `${items[0]} and ${items[1]}`;
+      return `${items.slice(0, -1).join(", ")}, and ${items[items.length - 1]}`;
+    };
+
+    const unique = (items: string[]) => {
+      const seen = new Set<string>();
+      return items.filter((item) => {
+        const key = item.toLowerCase();
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    };
+
     const cleaned = text
       .replace(/!?\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, "$1")
       .replace(/\*\*/g, "")
@@ -262,7 +278,19 @@ export default function Page() {
       .filter(Boolean) as string[];
 
     if (pricedItems.length > 0) {
-      return `I found ${pricedItems.slice(0, 5).join("; ")}.`;
+      return `Alright! I found some. We have ${joinSpokenList(pricedItems.slice(0, 5))}. Let me know if you would like to add any of these to your cart!`;
+    }
+
+    const boldPlantNames = unique(
+      Array.from(text.matchAll(/\*\*([^*]+)\*\*/g))
+        .map((m) => m[1].trim())
+        .filter((name) => !/^(size|type|sku|price|available|availability|quality|specs?)$/i.test(name))
+        .filter((name) => !/^\d+/.test(name))
+        .filter((name) => name.length >= 3)
+    );
+
+    if (boldPlantNames.length > 0) {
+      return `Alright! I found some. We have some ${joinSpokenList(boldPlantNames.slice(0, 5))}. Let me know if you would like to add any of these to your cart!`;
     }
 
     if (/price|pricing|cost|\$/i.test(cleaned)) {
