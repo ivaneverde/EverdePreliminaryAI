@@ -6,6 +6,8 @@ import type { CartLine, InventoryItem, PreliminaryOrder } from "@/lib/types";
 import { formatMoneyFromCents } from "@/lib/money";
 import { RegionGateModal, type GateRegion } from "@/components/RegionGateModal";
 
+const AI_VOICE_STORAGE_KEY = "everde_ai_voice_enabled_v1";
+
 function isGateRegion(v: string | null): v is GateRegion {
   return v === "west" || v === "central" || v === "east";
 }
@@ -57,6 +59,7 @@ export default function Page() {
   const [chatMessages, setChatMessages] = useState<Array<{ role: "user" | "assistant"; content: string }>>([]);
   const [chatLoading, setChatLoading] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
+  const [aiVoiceEnabled, setAiVoiceEnabled] = useState(false);
 
   const inventoryBySku = useMemo(() => new Map(inventory.map((i) => [i.sku, i])), [inventory]);
 
@@ -201,6 +204,43 @@ export default function Page() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inventoryFilter, regionGate]);
 
+  useEffect(() => {
+    setAiVoiceEnabled(localStorage.getItem(AI_VOICE_STORAGE_KEY) === "true");
+    return () => {
+      window.speechSynthesis?.cancel();
+    };
+  }, []);
+
+  function chooseAiVoice() {
+    const voices = window.speechSynthesis?.getVoices?.() ?? [];
+    const preferred = voices.find((v) => /natural|jenny|aria|samantha|zira/i.test(v.name));
+    return preferred ?? voices.find((v) => v.lang.toLowerCase().startsWith("en")) ?? null;
+  }
+
+  function speakAssistantReply(text: string) {
+    if (!aiVoiceEnabled || typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    const trimmed = text.trim();
+    if (!trimmed) return;
+
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(trimmed);
+    const voice = chooseAiVoice();
+    if (voice) utterance.voice = voice;
+    utterance.rate = 0.95;
+    utterance.pitch = 1.05;
+    utterance.volume = 1;
+    window.speechSynthesis.speak(utterance);
+  }
+
+  function toggleAiVoice() {
+    setAiVoiceEnabled((next) => {
+      const enabled = !next;
+      localStorage.setItem(AI_VOICE_STORAGE_KEY, String(enabled));
+      if (!enabled) window.speechSynthesis?.cancel();
+      return enabled;
+    });
+  }
+
   async function addToCart(sku: string, quantity: number) {
     if (quantity <= 0) return;
     setCreatedOrder(null);
@@ -343,6 +383,7 @@ export default function Page() {
         { role: "user", content: userText },
         { role: "assistant", content: assistantText },
       ]);
+      speakAssistantReply(assistantText);
 
       if (additions.length > 0) {
         // Add proposed items to cart automatically for convenience.
@@ -572,13 +613,23 @@ export default function Page() {
               <div className="title" style={{ margin: 0 }}>
                 AI Assistant
               </div>
-              <button
-                className="muted-btn"
-                onClick={() => setAiMinimized((v) => !v)}
-                style={{ padding: "6px 12px" }}
-              >
-                {aiMinimized ? "Maximize" : "Minimize"}
-              </button>
+              <div className="row" style={{ gap: 8 }}>
+                <button
+                  className={aiVoiceEnabled ? "primary" : "muted-btn"}
+                  onClick={toggleAiVoice}
+                  title={aiVoiceEnabled ? "Mute AI voice" : "Turn on AI voice"}
+                  style={{ padding: "6px 12px", whiteSpace: "nowrap" }}
+                >
+                  {aiVoiceEnabled ? "Voice On" : "Muted"}
+                </button>
+                <button
+                  className="muted-btn"
+                  onClick={() => setAiMinimized((v) => !v)}
+                  style={{ padding: "6px 12px" }}
+                >
+                  {aiMinimized ? "Maximize" : "Minimize"}
+                </button>
+              </div>
             </div>
             {!aiMinimized ? (
               <>
