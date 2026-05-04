@@ -743,7 +743,7 @@ export default function Page() {
             {!aiMinimized ? (
               <>
                 <div className="subtle" style={{ marginBottom: 10 }}>
-                  {`Ask for recommendations, availability, quality, or pricing. The assistant can propose cart items. I'm looking for white flowers that work great in low light.`}
+                  {`Ask for recommendations, availability, quality, or pricing. The assistant can propose cart items. Example: "I'm looking for white flowers that work great in low light."`}
                 </div>
 
                 <AiChat
