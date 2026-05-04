@@ -261,81 +261,103 @@ select:disabled {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px;
+  padding: 12px;
   background: rgba(62, 58, 52, 0.45);
   backdrop-filter: blur(3px);
 }
 
 .region-gate-card {
   width: 100%;
-  max-width: 720px;
-  max-height: min(92vh, 900px);
-  overflow: auto;
+  max-width: min(900px, 96vw);
+  max-height: 96vh;
+  overflow: hidden;
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 16px;
-  padding: 22px 24px 26px;
+  padding: 12px 18px 16px;
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.18);
   text-align: center;
 }
 
 .region-gate-logo {
   display: block;
-  margin: 0 auto 12px;
+  width: 92px;
+  height: 92px;
+  margin: 0 auto 8px;
 }
 
 .region-gate-heading {
-  margin: 0 0 8px;
-  font-size: 1.35rem;
+  margin: 0 0 12px;
+  font-size: clamp(1.45rem, 2.8vw, 2rem);
   font-weight: 700;
   color: var(--text);
 }
 
-.region-gate-sub {
-  margin: 0 0 16px;
-  max-width: 520px;
-  margin-left: auto;
-  margin-right: auto;
-  line-height: 1.45;
-}
-
 .region-gate-map-wrap {
+  position: relative;
   border-radius: 12px;
   border: 1px solid var(--border);
-  background: #faf8f5;
-  padding: 8px;
-  margin-bottom: 14px;
+  background: #fff;
+  padding: 0;
+  overflow: hidden;
 }
 
-.region-gate-svg {
+.region-gate-map-image {
   display: block;
   width: 100%;
   height: auto;
-  max-height: 380px;
+  max-height: calc(96vh - 145px);
+  object-fit: contain;
 }
 
-.region-gate-hit {
+.region-gate-zone {
+  position: absolute;
+  top: 8%;
+  bottom: 8%;
+  border: 0;
+  border-radius: 0;
+  background: rgba(95, 135, 88, 0);
+  color: transparent;
   cursor: pointer;
-  transition: fill-opacity 0.12s ease, stroke-width 0.12s ease;
+  transition: background 0.12s ease, outline-color 0.12s ease;
+  outline: 2px solid transparent;
+  outline-offset: -2px;
 }
 
-.region-gate-svg-label {
-  pointer-events: none;
-  user-select: none;
-  fill: var(--text);
-  font-size: 22px;
+.region-gate-zone:hover,
+.region-gate-zone:focus-visible {
+  background: rgba(95, 135, 88, 0.24);
+  outline-color: rgba(63, 102, 52, 0.5);
+}
+
+.region-gate-zone span {
+  position: absolute;
+  top: 48%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: rgba(63, 58, 52, 0.72);
   font-weight: 700;
-  opacity: 0.45;
-  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(0.95rem, 1.9vw, 1.35rem);
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+  user-select: none;
 }
 
-.region-gate-legend {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 14px 22px;
-  font-size: 12px;
-  text-align: center;
+.region-gate-zone-west {
+  left: 3%;
+  width: 31%;
+  clip-path: polygon(0 0, 87% 3%, 94% 46%, 82% 90%, 8% 96%, 0 60%);
+}
+
+.region-gate-zone-central {
+  left: 31%;
+  width: 30%;
+  clip-path: polygon(5% 4%, 95% 4%, 92% 92%, 0 90%, 9% 47%);
+}
+
+.region-gate-zone-east {
+  left: 56%;
+  width: 41%;
+  clip-path: polygon(1% 2%, 77% 1%, 100% 17%, 90% 96%, 7% 93%, 10% 46%);
 }
 
 .cart-toast {
