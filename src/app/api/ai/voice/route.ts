@@ -21,8 +21,9 @@ function isLegacyTtsModel(model: string) {
 const DEFAULT_TTS_INSTRUCTIONS =
   "You sound like a warm American woman in her mid-twenties who works at a plant nursery and loves helping people. " +
   "Friendly, a little playful, genuinely engaged—like you are chatting with a friend at the shop, not reading a script. " +
-  "Keep energy up: clear, slightly quick natural pacing, light smiles in your tone, never stiff, slow, matronly, or corporate. " +
-  "Do not sound older than your twenties.";
+  "Speak slightly faster than everyday conversation—smooth and fluid, with natural run-on phrasing and light intonation. " +
+  "Avoid choppy delivery, long awkward pauses, or over-enunciating each word; keep clauses flowing together. " +
+  "Light smiles in your tone, never stiff, slow, matronly, or corporate. Do not sound older than your twenties.";
 
 export async function POST(req: Request) {
   try {
@@ -42,7 +43,7 @@ export async function POST(req: Request) {
     const voice = env("OPENAI_TTS_VOICE") ?? "nova";
     const legacy = isLegacyTtsModel(model);
     const speedRaw = env("OPENAI_TTS_SPEED");
-    const speed = speedRaw != null ? Number(speedRaw) : 1.12;
+    const speed = speedRaw != null ? Number(speedRaw) : 1.18;
     const instructions = env("OPENAI_TTS_INSTRUCTIONS") ?? DEFAULT_TTS_INSTRUCTIONS;
 
     const speech = await client.audio.speech.create({
@@ -51,7 +52,7 @@ export async function POST(req: Request) {
       input: parsed.text,
       response_format: "mp3",
       ...(legacy
-        ? { speed: Number.isFinite(speed) ? Math.min(4, Math.max(0.25, speed)) : 1.12 }
+        ? { speed: Number.isFinite(speed) ? Math.min(4, Math.max(0.25, speed)) : 1.18 }
         : { instructions }),
     });
 
