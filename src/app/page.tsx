@@ -224,17 +224,65 @@ export default function Page() {
     }
   }
 
+  function buildVoiceSummary(text: string) {
+    const cleaned = text
+      .replace(/!?\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, "$1")
+      .replace(/\*\*/g, "")
+      .replace(/[_`#>]/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    const pricedItems = text
+      .split("\n")
+      .map((line) =>
+        line
+          .replace(/!?\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, "$1")
+          .replace(/\*\*/g, "")
+          .replace(/[_`#>]/g, "")
+          .trim()
+      )
+      .map((line) => {
+        const priceMatch = line.match(/\$\s?\d+(?:\.\d{2})?/);
+        if (!priceMatch || priceMatch.index == null) return null;
+
+        const price = priceMatch[0].replace(/\s+/g, "");
+        const beforePrice = line.slice(0, priceMatch.index);
+        const name = beforePrice
+          .replace(/^[-*\d.)\s]+/, "")
+          .replace(/\b(SKU|Item|Price|Available|Availability|Quality|Specs?)\b[:\s-]*/gi, "")
+          .replace(/\([^)]*\)/g, "")
+          .replace(/\b[A-Z0-9]{5,}\b/g, "")
+          .replace(/[:–—-]\s*$/, "")
+          .replace(/\s+/g, " ")
+          .trim();
+
+        if (!name || name.length < 3) return null;
+        return `${name}, ${price}`;
+      })
+      .filter(Boolean) as string[];
+
+    if (pricedItems.length > 0) {
+      return `I found ${pricedItems.slice(0, 5).join("; ")}.`;
+    }
+
+    if (/price|pricing|cost|\$/i.test(cleaned)) {
+      return "I found pricing details for you. Please review the options on screen.";
+    }
+
+    return "I found a few options for you. Please review the details on screen.";
+  }
+
   async function speakAssistantReply(text: string) {
     if (!aiVoiceEnabledRef.current) return;
-    const trimmed = text.trim();
-    if (!trimmed) return;
+    const voiceText = buildVoiceSummary(text);
+    if (!voiceText) return;
 
     stopAiVoice();
     try {
       const res = await fetch("/api/ai/voice", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ text: trimmed }),
+        body: JSON.stringify({ text: voiceText }),
       });
       if (!res.ok) throw new Error(`Voice failed (${res.status}).`);
       if (!aiVoiceEnabledRef.current) return;

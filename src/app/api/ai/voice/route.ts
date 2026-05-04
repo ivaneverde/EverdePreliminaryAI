@@ -28,14 +28,14 @@ export async function POST(req: Request) {
 
     const client = new OpenAI({ apiKey: openaiKey });
     const model = env("OPENAI_TTS_MODEL") ?? "tts-1-hd";
-    const voice = env("OPENAI_TTS_VOICE") ?? "nova";
+    const voice = env("OPENAI_TTS_VOICE") ?? "shimmer";
 
     const speech = await client.audio.speech.create({
       model,
       voice,
       input: parsed.text,
       response_format: "mp3",
-      speed: 0.95,
+      speed: 1.03,
     });
 
     const audio = Buffer.from(await speech.arrayBuffer());
