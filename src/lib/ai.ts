@@ -13,6 +13,8 @@ const ProposedCartToolInputSchema = z.object({
   additions: z.array(CartAdditionSchema).max(50),
 });
 
+type AssistantInventoryItem = Awaited<ReturnType<typeof listInventory>>[number];
+
 export async function runSalesAssistantChat(params: {
   messages: Array<{ role: "user" | "assistant"; content: string }>;
   maxInventoryItemsForContext?: number;
@@ -32,6 +34,9 @@ export async function runSalesAssistantChat(params: {
     "Help new customers understand products and choose items based on inventory availability. " +
     "Always avoid suggesting items that are out of stock. " +
     "If the user asks for pricing, quality, or availability, only use the provided inventory data. " +
+    "Always include the item price when mentioning or recommending a specific inventory item. " +
+    "If the user asks for prices for items already mentioned, look them up by SKU or name and answer with prices. " +
+    "Never say pricing is unavailable when the inventory data includes priceCents or price. " +
     "When showing plant links, use clean markdown links like [View Plant](https://...). " +
     "Never output a raw URL on a separate line. " +
     "When appropriate, propose specific SKUs with quantities for adding to the cart. " +
@@ -111,8 +116,18 @@ export async function runSalesAssistantChat(params: {
     });
     openaiMessages.push({
       role: "system",
-      content: `Inventory snapshot (in stock): ${JSON.stringify(preloaded)}`,
+      content: `Inventory snapshot (in stock): ${JSON.stringify(preloaded.map(formatInventoryItemForAssistant))}`,
     });
+  }
+
+  if (isPricingQuestion(latestUserMessage)) {
+    const pricingContext = await buildPricingContext(params.messages, maxInventoryItemsForContext);
+    if (pricingContext.length > 0) {
+      openaiMessages.push({
+        role: "system",
+        content: `Pricing context from inventory data: ${JSON.stringify(pricingContext)}`,
+      });
+    }
   }
 
   const assistantCartAdditions: CartAddition[] = [];
@@ -168,7 +183,7 @@ export async function runSalesAssistantChat(params: {
             openaiMessages.push({
               role: "tool",
               tool_call_id: toolCallId,
-              content: JSON.stringify({ results }),
+              content: JSON.stringify({ results: results.map(formatInventoryItemForAssistant) }),
             });
           } else if (name === "get_inventory_item") {
             const args = z.object({ sku: z.string().min(1) }).parse(JSON.parse(argsRaw));
@@ -176,7 +191,7 @@ export async function runSalesAssistantChat(params: {
             openaiMessages.push({
               role: "tool",
               tool_call_id: toolCallId,
-              content: JSON.stringify({ item }),
+              content: JSON.stringify({ item: item ? formatInventoryItemForAssistant(item) : null }),
             });
           } else if (name === "propose_cart_additions") {
             const args = ProposedCartToolInputSchema.parse(JSON.parse(argsRaw));
@@ -243,6 +258,69 @@ function shouldPrimeWithInventory(userText: string) {
     q.includes("low light") ||
     q.includes("inventory")
   );
+}
+
+function isPricingQuestion(userText: string) {
+  return /\b(price|prices|pricing|cost|costs|how much|\$)\b/i.test(userText);
+}
+
+async function buildPricingContext(
+  messages: Array<{ role: "user" | "assistant"; content: string }>,
+  limit: number,
+) {
+  const recentText = messages
+    .slice(-6)
+    .map((m) => m.content)
+    .join("\n");
+
+  const skuMatches = Array.from(
+    recentText.matchAll(/\bSKU\W{0,8}([A-Z0-9][A-Z0-9-]{3,})\b/gi),
+    (match) => match[1],
+  );
+  const uniqueSkus = Array.from(new Set(skuMatches.map((sku) => sku.toUpperCase()))).slice(0, 20);
+
+  const items: AssistantInventoryItem[] = [];
+  for (const sku of uniqueSkus) {
+    const item = await getInventoryItem(sku);
+    if (item && item.availabilityQty > 0) {
+      items.push(item);
+    }
+  }
+
+  if (items.length === 0) {
+    const latestPlantLikeLine = messages
+      .slice()
+      .reverse()
+      .flatMap((m) => m.content.split("\n").reverse())
+      .map((line) => line.replace(/[*_`#>-]/g, " ").trim())
+      .find((line) => line.length > 3 && !/^sku\b/i.test(line) && !/^view plant\b/i.test(line));
+
+    if (latestPlantLikeLine) {
+      items.push(
+        ...(await listInventory({
+          q: latestPlantLikeLine,
+          availableOnly: true,
+          limit: Math.min(limit, 10),
+        })),
+      );
+    }
+  }
+
+  return items.slice(0, limit).map(formatInventoryItemForAssistant);
+}
+
+function formatInventoryItemForAssistant(item: AssistantInventoryItem) {
+  return {
+    ...item,
+    price: formatMoneyFromCents(item.priceCents, item.currency),
+  };
+}
+
+function formatMoneyFromCents(cents: number, currency = "USD") {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency,
+  }).format(cents / 100);
 }
 
 function cleanAssistantReply(text: string) {
