@@ -300,6 +300,7 @@ select:disabled {
   background: #fff;
   padding: 0;
   overflow: hidden;
+  margin-bottom: 12px;
 }
 
 .region-gate-map-image {
@@ -312,8 +313,8 @@ select:disabled {
 
 .region-gate-zone {
   position: absolute;
-  top: 8%;
-  bottom: 8%;
+  top: 5%;
+  bottom: 5%;
   border: 0;
   border-radius: 0;
   background: rgba(95, 135, 88, 0);
@@ -326,38 +327,47 @@ select:disabled {
 
 .region-gate-zone:hover,
 .region-gate-zone:focus-visible {
-  background: rgba(95, 135, 88, 0.24);
+  background: rgba(95, 135, 88, 0.22);
   outline-color: rgba(63, 102, 52, 0.5);
 }
 
-.region-gate-zone span {
-  position: absolute;
-  top: 48%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: rgba(63, 58, 52, 0.72);
-  font-weight: 700;
-  font-size: clamp(0.95rem, 1.9vw, 1.35rem);
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
-  user-select: none;
-}
-
 .region-gate-zone-west {
-  left: 3%;
-  width: 31%;
-  clip-path: polygon(0 0, 87% 3%, 94% 46%, 82% 90%, 8% 96%, 0 60%);
+  left: 3.5%;
+  width: 35%;
+  clip-path: polygon(0 0, 82% 1%, 90% 22%, 84% 52%, 93% 73%, 74% 96%, 6% 96%, 0 64%);
 }
 
 .region-gate-zone-central {
-  left: 31%;
-  width: 30%;
-  clip-path: polygon(5% 4%, 95% 4%, 92% 92%, 0 90%, 9% 47%);
+  left: 32%;
+  width: 33%;
+  clip-path: polygon(0 1%, 98% 2%, 92% 24%, 95% 55%, 80% 96%, 3% 93%, 11% 52%, 7% 22%);
 }
 
 .region-gate-zone-east {
   left: 56%;
-  width: 41%;
-  clip-path: polygon(1% 2%, 77% 1%, 100% 17%, 90% 96%, 7% 93%, 10% 46%);
+  width: 41.5%;
+  clip-path: polygon(0 0, 73% 2%, 98% 4%, 100% 47%, 89% 96%, 5% 94%, 13% 56%, 8% 25%);
+}
+
+.region-gate-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.region-gate-action {
+  border-color: #bfd1b8;
+  background: var(--brand-soft);
+  color: var(--brand-strong);
+  font-size: clamp(1rem, 1.7vw, 1.2rem);
+  font-weight: 800;
+}
+
+.region-gate-action:hover,
+.region-gate-action:focus-visible {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #f5f2ed;
 }
 
 .cart-toast {

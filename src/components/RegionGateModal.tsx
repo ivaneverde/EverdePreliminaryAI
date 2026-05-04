@@ -32,26 +32,31 @@ export function RegionGateModal({ open, onSelect }: Props) {
             className="region-gate-zone region-gate-zone-west"
             aria-label="Choose West region"
             onClick={() => onSelect("west")}
-          >
-            <span>West</span>
-          </button>
+          />
           <button
             type="button"
             className="region-gate-zone region-gate-zone-central"
             aria-label="Choose Central region"
             onClick={() => onSelect("central")}
-          >
-            <span>Central</span>
-          </button>
+          />
           <button
             type="button"
             className="region-gate-zone region-gate-zone-east"
             aria-label="Choose East region"
             onClick={() => onSelect("east")}
-          >
-            <span>East</span>
-          </button>
+          />
+        </div>
 
+        <div className="region-gate-actions" aria-label="Region choices">
+          <button type="button" className="region-gate-action" onClick={() => onSelect("west")}>
+            West
+          </button>
+          <button type="button" className="region-gate-action" onClick={() => onSelect("central")}>
+            Central
+          </button>
+          <button type="button" className="region-gate-action" onClick={() => onSelect("east")}>
+            East
+          </button>
         </div>
       </div>
     </div>
