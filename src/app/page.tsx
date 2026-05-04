@@ -324,7 +324,7 @@ export default function Page() {
             />
             <div>
               <h1 className="brand-title">Everde AI Assistant</h1>
-              <div className="version-label">Version 0.3</div>
+              <div className="version-label">Version 0.4</div>
               <div className="subtle">Your personal plant-friendly Everde agent and Preliminary Order.</div>
             </div>
           </div>
