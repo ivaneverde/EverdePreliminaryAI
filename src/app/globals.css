@@ -313,8 +313,7 @@ select:disabled {
 
 .region-gate-zone {
   position: absolute;
-  top: 5%;
-  bottom: 5%;
+  inset: 0;
   border: 0;
   border-radius: 0;
   background: rgba(95, 135, 88, 0);
@@ -323,6 +322,12 @@ select:disabled {
   transition: background 0.12s ease, outline-color 0.12s ease;
   outline: 2px solid transparent;
   outline-offset: -2px;
+  -webkit-mask-image: url("/maps/us-region-map.png");
+  mask-image: url("/maps/us-region-map.png");
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
 }
 
 .region-gate-zone:hover,
@@ -332,18 +337,15 @@ select:disabled {
 }
 
 .region-gate-zone-west {
-  inset: 0;
-  clip-path: polygon(4% 7%, 34% 8%, 37% 36%, 34% 54%, 41% 71%, 33% 88%, 20% 78%, 9% 66%, 5% 48%);
+  clip-path: polygon(0 0, 34% 0, 34% 100%, 0 100%);
 }
 
 .region-gate-zone-central {
-  inset: 0;
-  clip-path: polygon(34% 8%, 65% 10%, 63% 36%, 67% 55%, 60% 88%, 33% 88%, 41% 71%, 34% 54%, 37% 36%);
+  clip-path: polygon(30% 0, 64% 0, 64% 100%, 30% 100%);
 }
 
 .region-gate-zone-east {
-  inset: 0;
-  clip-path: polygon(65% 10%, 96% 6%, 98% 31%, 94% 58%, 88% 95%, 72% 83%, 60% 88%, 67% 55%, 63% 36%);
+  clip-path: polygon(60% 0, 100% 0, 100% 100%, 60% 100%);
 }
 
 .region-gate-actions {
