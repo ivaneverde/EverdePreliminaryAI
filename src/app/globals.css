@@ -327,26 +327,23 @@ select:disabled {
 
 .region-gate-zone:hover,
 .region-gate-zone:focus-visible {
-  background: rgba(95, 135, 88, 0.22);
+  background: rgba(95, 135, 88, 0.2);
   outline-color: rgba(63, 102, 52, 0.5);
 }
 
 .region-gate-zone-west {
-  left: 3.5%;
-  width: 35%;
-  clip-path: polygon(0 0, 82% 1%, 90% 22%, 84% 52%, 93% 73%, 74% 96%, 6% 96%, 0 64%);
+  inset: 0;
+  clip-path: polygon(4% 7%, 34% 8%, 37% 36%, 34% 54%, 41% 71%, 33% 88%, 20% 78%, 9% 66%, 5% 48%);
 }
 
 .region-gate-zone-central {
-  left: 32%;
-  width: 33%;
-  clip-path: polygon(0 1%, 98% 2%, 92% 24%, 95% 55%, 80% 96%, 3% 93%, 11% 52%, 7% 22%);
+  inset: 0;
+  clip-path: polygon(34% 8%, 65% 10%, 63% 36%, 67% 55%, 60% 88%, 33% 88%, 41% 71%, 34% 54%, 37% 36%);
 }
 
 .region-gate-zone-east {
-  left: 56%;
-  width: 41.5%;
-  clip-path: polygon(0 0, 73% 2%, 98% 4%, 100% 47%, 89% 96%, 5% 94%, 13% 56%, 8% 25%);
+  inset: 0;
+  clip-path: polygon(65% 10%, 96% 6%, 98% 31%, 94% 58%, 88% 95%, 72% 83%, 60% 88%, 67% 55%, 63% 36%);
 }
 
 .region-gate-actions {
