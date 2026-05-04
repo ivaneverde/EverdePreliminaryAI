@@ -248,6 +248,96 @@ th {
   background: #f3e2e1;
 }
 
+select:disabled {
+  opacity: 0.85;
+  cursor: not-allowed;
+  background: #f0ece6;
+}
+
+.region-gate-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(62, 58, 52, 0.45);
+  backdrop-filter: blur(3px);
+}
+
+.region-gate-card {
+  width: 100%;
+  max-width: 720px;
+  max-height: min(92vh, 900px);
+  overflow: auto;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 22px 24px 26px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.18);
+  text-align: center;
+}
+
+.region-gate-logo {
+  display: block;
+  margin: 0 auto 12px;
+}
+
+.region-gate-heading {
+  margin: 0 0 8px;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.region-gate-sub {
+  margin: 0 0 16px;
+  max-width: 520px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.45;
+}
+
+.region-gate-map-wrap {
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: #faf8f5;
+  padding: 8px;
+  margin-bottom: 14px;
+}
+
+.region-gate-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 380px;
+}
+
+.region-gate-hit {
+  cursor: pointer;
+  transition: fill-opacity 0.12s ease, stroke-width 0.12s ease;
+}
+
+.region-gate-svg-label {
+  pointer-events: none;
+  user-select: none;
+  fill: var(--text);
+  font-size: 22px;
+  font-weight: 700;
+  opacity: 0.45;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+}
+
+.region-gate-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px 22px;
+  font-size: 12px;
+  text-align: center;
+}
+
 .cart-toast {
   position: fixed;
   right: 20px;

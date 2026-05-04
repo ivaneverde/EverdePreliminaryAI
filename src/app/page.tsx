@@ -1,9 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { CartLine, InventoryItem, PreliminaryOrder } from "@/lib/types";
 import { formatMoneyFromCents } from "@/lib/money";
+import { RegionGateModal, type GateRegion } from "@/components/RegionGateModal";
+
+function isGateRegion(v: string | null): v is GateRegion {
+  return v === "west" || v === "central" || v === "east";
+}
 
 function mergeCart(lines: CartLine[]) {
   const bySku = new Map<string, number>();
@@ -14,9 +19,13 @@ function mergeCart(lines: CartLine[]) {
 export default function Page() {
   const router = useRouter();
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
-  const [inventoryLoading, setInventoryLoading] = useState(true);
+  const [inventoryLoading, setInventoryLoading] = useState(false);
   const [inventoryError, setInventoryError] = useState<string | null>(null);
   const [inventoryLastUpdatedAt, setInventoryLastUpdatedAt] = useState<string | null>(null);
+
+  /** Start open so the map shows immediately; no sessionStorage skip (avoids stale keys hiding the modal). */
+  const [regionGate, setRegionGate] = useState<"open" | "closed">("open");
+  const [inventoryRegionLocked, setInventoryRegionLocked] = useState(false);
 
   const [inventoryQuery, setInventoryQuery] = useState("");
   const [inventoryFilter, setInventoryFilter] = useState<"all" | "available" | "west" | "central" | "east">(
@@ -120,6 +129,41 @@ export default function Page() {
     }
   }
 
+  /** Optional deep link only: `?region=west|central|east` skips the modal (e.g. bookmarks, demos). */
+  useLayoutEffect(() => {
+    try {
+      const urlR = new URLSearchParams(window.location.search).get("region");
+      if (isGateRegion(urlR)) {
+        setInventoryFilter(urlR);
+        setInventoryRegionLocked(true);
+        setRegionGate("closed");
+      }
+    } catch {
+      // keep gate open
+    }
+  }, []);
+
+  useEffect(() => {
+    document.body.style.overflow = regionGate === "open" ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [regionGate]);
+
+  function handleGateRegion(region: GateRegion) {
+    setInventoryFilter(region);
+    setInventoryRegionLocked(true);
+    setRegionGate("closed");
+  }
+
+  function openChangeRegionModal() {
+    setInventoryRegionLocked(false);
+    setInventoryFilter("available");
+    setInventory([]);
+    setInventoryLastUpdatedAt(null);
+    setRegionGate("open");
+  }
+
   async function loadInventory() {
     setInventoryLoading(true);
     setInventoryError(null);
@@ -152,9 +196,10 @@ export default function Page() {
   }
 
   useEffect(() => {
+    if (regionGate !== "closed") return;
     loadInventory();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [inventoryFilter]);
+  }, [inventoryFilter, regionGate]);
 
   async function addToCart(sku: string, quantity: number) {
     if (quantity <= 0) return;
@@ -314,6 +359,8 @@ export default function Page() {
 
   return (
     <div>
+      <RegionGateModal open={regionGate === "open"} onSelect={handleGateRegion} />
+
       <header className="topbar">
         <div className="container topbar-inner">
           <div className="row" style={{ gap: 12 }}>
@@ -324,19 +371,26 @@ export default function Page() {
             />
             <div>
               <h1 className="brand-title">Everde AI Assistant</h1>
-              <div className="version-label">Version 0.4</div>
+              <div className="version-label">Version 0.5</div>
               <div className="subtle">Your personal plant-friendly Everde agent and Preliminary Order.</div>
             </div>
           </div>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8 }}>
             <div className="pill pill-brand">Everde Production Testing Mode</div>
-            <button
-              onClick={toggleAdminMode}
-              className="muted-btn"
-              style={{ padding: "8px 14px" }}
-            >
-              {adminMode ? "Hide Admin" : "Admin"}
-            </button>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "flex-end" }}>
+              {inventoryRegionLocked ? (
+                <button type="button" className="muted-btn" style={{ padding: "8px 14px" }} onClick={openChangeRegionModal}>
+                  Change region
+                </button>
+              ) : null}
+              <button
+                onClick={toggleAdminMode}
+                className="muted-btn"
+                style={{ padding: "8px 14px" }}
+              >
+                {adminMode ? "Hide Admin" : "Admin"}
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -371,7 +425,9 @@ export default function Page() {
               />
             </div>
             <select
-              style={{ width: 180 }}
+              style={{ width: 200 }}
+              title={inventoryRegionLocked ? "Region was set from the map. Use “Change region” in the header to pick again." : undefined}
+              disabled={inventoryRegionLocked}
               value={inventoryFilter}
               onChange={(e) =>
                 setInventoryFilter(
