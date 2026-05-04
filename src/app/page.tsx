@@ -60,6 +60,8 @@ export default function Page() {
   const [chatLoading, setChatLoading] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
   const [aiVoiceEnabled, setAiVoiceEnabled] = useState(false);
+  const aiVoiceEnabledRef = useRef(false);
+  const aiAudioRef = useRef<HTMLAudioElement | null>(null);
 
   const inventoryBySku = useMemo(() => new Map(inventory.map((i) => [i.sku, i])), [inventory]);
 
@@ -205,38 +207,56 @@ export default function Page() {
   }, [inventoryFilter, regionGate]);
 
   useEffect(() => {
-    setAiVoiceEnabled(localStorage.getItem(AI_VOICE_STORAGE_KEY) === "true");
+    const enabled = localStorage.getItem(AI_VOICE_STORAGE_KEY) === "true";
+    aiVoiceEnabledRef.current = enabled;
+    setAiVoiceEnabled(enabled);
     return () => {
-      window.speechSynthesis?.cancel();
+      stopAiVoice();
     };
   }, []);
 
-  function chooseAiVoice() {
-    const voices = window.speechSynthesis?.getVoices?.() ?? [];
-    const preferred = voices.find((v) => /natural|jenny|aria|samantha|zira/i.test(v.name));
-    return preferred ?? voices.find((v) => v.lang.toLowerCase().startsWith("en")) ?? null;
+  function stopAiVoice() {
+    window.speechSynthesis?.cancel();
+    if (aiAudioRef.current) {
+      aiAudioRef.current.pause();
+      aiAudioRef.current.currentTime = 0;
+      aiAudioRef.current = null;
+    }
   }
 
-  function speakAssistantReply(text: string) {
-    if (!aiVoiceEnabled || typeof window === "undefined" || !("speechSynthesis" in window)) return;
+  async function speakAssistantReply(text: string) {
+    if (!aiVoiceEnabledRef.current) return;
     const trimmed = text.trim();
     if (!trimmed) return;
 
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(trimmed);
-    const voice = chooseAiVoice();
-    if (voice) utterance.voice = voice;
-    utterance.rate = 0.95;
-    utterance.pitch = 1.05;
-    utterance.volume = 1;
-    window.speechSynthesis.speak(utterance);
+    stopAiVoice();
+    try {
+      const res = await fetch("/api/ai/voice", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ text: trimmed }),
+      });
+      if (!res.ok) throw new Error(`Voice failed (${res.status}).`);
+      if (!aiVoiceEnabledRef.current) return;
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      aiAudioRef.current = audio;
+      audio.onended = () => URL.revokeObjectURL(url);
+      audio.onerror = () => URL.revokeObjectURL(url);
+      await audio.play();
+    } catch {
+      // Voice should never block the chat response; if TTS fails, keep the text-only UX.
+    }
   }
 
   function toggleAiVoice() {
     setAiVoiceEnabled((next) => {
       const enabled = !next;
+      aiVoiceEnabledRef.current = enabled;
       localStorage.setItem(AI_VOICE_STORAGE_KEY, String(enabled));
-      if (!enabled) window.speechSynthesis?.cancel();
+      if (!enabled) stopAiVoice();
       return enabled;
     });
   }
@@ -383,7 +403,7 @@ export default function Page() {
         { role: "user", content: userText },
         { role: "assistant", content: assistantText },
       ]);
-      speakAssistantReply(assistantText);
+      void speakAssistantReply(assistantText);
 
       if (additions.length > 0) {
         // Add proposed items to cart automatically for convenience.
