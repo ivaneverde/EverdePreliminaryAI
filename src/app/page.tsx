@@ -7,6 +7,8 @@ import { formatMoneyFromCents } from "@/lib/money";
 import { RegionGateModal, type GateRegion } from "@/components/RegionGateModal";
 
 const AI_VOICE_STORAGE_KEY = "everde_ai_voice_enabled_v1";
+const AI_WELCOME_MESSAGE =
+  "Hello and welcome to Everde! Feel free to browse our great selection on the left. If you have any questions, just ask me in the chat on the right. I'm here to help!";
 
 function isGateRegion(v: string | null): v is GateRegion {
   return v === "west" || v === "central" || v === "east";
@@ -56,12 +58,15 @@ export default function Page() {
   const [createError, setCreateError] = useState<string | null>(null);
   const [createdOrder, setCreatedOrder] = useState<PreliminaryOrder | null>(null);
 
-  const [chatMessages, setChatMessages] = useState<Array<{ role: "user" | "assistant"; content: string }>>([]);
+  const [chatMessages, setChatMessages] = useState<Array<{ role: "user" | "assistant"; content: string }>>([
+    { role: "assistant", content: AI_WELCOME_MESSAGE },
+  ]);
   const [chatLoading, setChatLoading] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
-  const [aiVoiceEnabled, setAiVoiceEnabled] = useState(false);
-  const aiVoiceEnabledRef = useRef(false);
+  const [aiVoiceEnabled, setAiVoiceEnabled] = useState(true);
+  const aiVoiceEnabledRef = useRef(true);
   const aiAudioRef = useRef<HTMLAudioElement | null>(null);
+  const welcomeVoicePlayedRef = useRef(false);
 
   const inventoryBySku = useMemo(() => new Map(inventory.map((i) => [i.sku, i])), [inventory]);
 
@@ -207,13 +212,21 @@ export default function Page() {
   }, [inventoryFilter, regionGate]);
 
   useEffect(() => {
-    const enabled = localStorage.getItem(AI_VOICE_STORAGE_KEY) === "true";
+    const stored = localStorage.getItem(AI_VOICE_STORAGE_KEY);
+    const enabled = stored == null ? true : stored === "true";
     aiVoiceEnabledRef.current = enabled;
     setAiVoiceEnabled(enabled);
     return () => {
       stopAiVoice();
     };
   }, []);
+
+  useEffect(() => {
+    if (regionGate !== "closed" || welcomeVoicePlayedRef.current) return;
+    welcomeVoicePlayedRef.current = true;
+    void speakAssistantReply(AI_WELCOME_MESSAGE, { useSummary: false });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [regionGate]);
 
   function stopAiVoice() {
     window.speechSynthesis?.cancel();
@@ -300,9 +313,9 @@ export default function Page() {
     return "I found a few options for you. Please review the details on screen.";
   }
 
-  async function speakAssistantReply(text: string) {
+  async function speakAssistantReply(text: string, options: { useSummary?: boolean } = {}) {
     if (!aiVoiceEnabledRef.current) return;
-    const voiceText = buildVoiceSummary(text);
+    const voiceText = options.useSummary === false ? text : buildVoiceSummary(text);
     if (!voiceText) return;
 
     stopAiVoice();
