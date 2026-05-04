@@ -13,6 +13,16 @@ function env(name: string): string | undefined {
   return v != null && v.trim() !== "" ? v.trim() : undefined;
 }
 
+/** `gpt-4o-mini-tts` supports `instructions`; `tts-1` / `tts-1-hd` use `speed` instead (per SDK types). */
+function isLegacyTtsModel(model: string) {
+  return model === "tts-1" || model === "tts-1-hd";
+}
+
+const DEFAULT_TTS_INSTRUCTIONS =
+  "Sound like a friendly young American retail host helping shoppers in a plant nursery. " +
+  "Upbeat, conversational, and genuinely enthusiastic—never stiff, monotone, or formal. " +
+  "Use a clear, slightly quicker natural pace with light warmth and energy.";
+
 export async function POST(req: Request) {
   try {
     const openaiKey = env("OPENAI_VOICE_API_KEY") ?? env("OPENAI_API_KEY");
@@ -27,15 +37,21 @@ export async function POST(req: Request) {
     const parsed = VoiceRequestSchema.parse(body);
 
     const client = new OpenAI({ apiKey: openaiKey });
-    const model = env("OPENAI_TTS_MODEL") ?? "tts-1-hd";
-    const voice = env("OPENAI_TTS_VOICE") ?? "shimmer";
+    const model = env("OPENAI_TTS_MODEL") ?? "gpt-4o-mini-tts";
+    const voice = env("OPENAI_TTS_VOICE") ?? "nova";
+    const legacy = isLegacyTtsModel(model);
+    const speedRaw = env("OPENAI_TTS_SPEED");
+    const speed = speedRaw != null ? Number(speedRaw) : 1.12;
+    const instructions = env("OPENAI_TTS_INSTRUCTIONS") ?? DEFAULT_TTS_INSTRUCTIONS;
 
     const speech = await client.audio.speech.create({
       model,
       voice,
       input: parsed.text,
       response_format: "mp3",
-      speed: 1.03,
+      ...(legacy
+        ? { speed: Number.isFinite(speed) ? Math.min(4, Math.max(0.25, speed)) : 1.12 }
+        : { instructions }),
     });
 
     const audio = Buffer.from(await speech.arrayBuffer());
