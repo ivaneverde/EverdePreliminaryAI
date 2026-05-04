@@ -337,15 +337,15 @@ select:disabled {
 }
 
 .region-gate-zone-west {
-  clip-path: polygon(0 0, 34% 0, 34% 100%, 0 100%);
+  clip-path: polygon(0 0, 45% 0, 45% 100%, 0 100%);
 }
 
 .region-gate-zone-central {
-  clip-path: polygon(30% 0, 64% 0, 64% 100%, 30% 100%);
+  clip-path: polygon(43% 0, 67% 0, 67% 100%, 43% 100%);
 }
 
 .region-gate-zone-east {
-  clip-path: polygon(60% 0, 100% 0, 100% 100%, 60% 100%);
+  clip-path: polygon(65% 0, 100% 0, 100% 100%, 65% 100%);
 }
 
 .region-gate-actions {
