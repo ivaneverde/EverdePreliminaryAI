@@ -80,6 +80,8 @@ SMTP from Vercel’s cloud to an **internal relay IP** often fails unless the ne
 
 Upload `.xls` exports from Oracle BI Publisher (HTML table) via the admin import UI (password in app). Implementation: `src/app/api/inventory/import/route.ts` and `src/lib/inventoryImport.ts`.
 
+Manual import endpoint now requires `INVENTORY_IMPORT_PASSWORD` (sent as `x-inventory-import-password` by the Admin UI prompt) so public users cannot overwrite inventory.
+
 ### Automated daily import (Outlook/Power Automate)
 
 You can automate import from a mailbox folder like `Inbox/AInventory`:

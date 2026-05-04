@@ -16,6 +16,7 @@ export default function Page() {
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [inventoryLoading, setInventoryLoading] = useState(true);
   const [inventoryError, setInventoryError] = useState<string | null>(null);
+  const [inventoryLastUpdatedAt, setInventoryLastUpdatedAt] = useState<string | null>(null);
 
   const [inventoryQuery, setInventoryQuery] = useState("");
   const [inventoryFilter, setInventoryFilter] = useState<"all" | "available" | "west" | "central" | "east">(
@@ -27,6 +28,7 @@ export default function Page() {
   const [aiMinimized, setAiMinimized] = useState(false);
   const [adminMode, setAdminMode] = useState(false);
   const [adminUnlocked, setAdminUnlocked] = useState(false);
+  const [adminPassword, setAdminPassword] = useState<string | null>(null);
   const [importFile, setImportFile] = useState<File | null>(null);
   const [importingInventory, setImportingInventory] = useState(false);
   const [importInventoryMsg, setImportInventoryMsg] = useState<string | null>(null);
@@ -93,7 +95,10 @@ export default function Page() {
     }
   }
 
-  async function fetchInventoryPage(params: URLSearchParams, attempt = 0): Promise<InventoryItem[]> {
+  async function fetchInventoryPage(
+    params: URLSearchParams,
+    attempt = 0
+  ): Promise<{ items: InventoryItem[]; lastInventoryUpdatedAt?: string | null }> {
     const url = `/api/inventory?${params.toString()}`;
     try {
       const res = await fetch(url, { method: "GET", cache: "no-store" });
@@ -102,7 +107,10 @@ export default function Page() {
         throw new Error(`Inventory fetch failed (${res.status}). ${errText.slice(0, 200)}`);
       }
       const data = await res.json();
-      return (data.items ?? []) as InventoryItem[];
+      return {
+        items: (data.items ?? []) as InventoryItem[],
+        lastInventoryUpdatedAt: data.lastInventoryUpdatedAt as string | null | undefined,
+      };
     } catch (e) {
       if (attempt < 3) {
         await new Promise((r) => window.setTimeout(r, 800 * (attempt + 1)));
@@ -127,8 +135,11 @@ export default function Page() {
         params.set("offset", String(offset));
 
         const batch = await fetchInventoryPage(params);
-        acc.push(...batch);
-        if (batch.length < pageSize) break;
+        if (batch.lastInventoryUpdatedAt !== undefined) {
+          setInventoryLastUpdatedAt(batch.lastInventoryUpdatedAt);
+        }
+        acc.push(...batch.items);
+        if (batch.items.length < pageSize) break;
         offset += pageSize;
         if (offset > 50_000) break;
       }
@@ -211,6 +222,10 @@ export default function Page() {
 
   async function importInventory() {
     if (!importFile) return;
+    if (!adminPassword) {
+      setImportInventoryErr("Admin password required for import.");
+      return;
+    }
     setImportingInventory(true);
     setImportInventoryErr(null);
     setImportInventoryMsg(null);
@@ -219,6 +234,7 @@ export default function Page() {
       form.append("file", importFile);
       const res = await fetch("/api/inventory/import", {
         method: "POST",
+        headers: { "x-inventory-import-password": adminPassword },
         body: form,
       });
       const data = await res.json();
@@ -239,11 +255,12 @@ export default function Page() {
 
   function toggleAdminMode() {
     if (!adminUnlocked) {
-      const entered = window.prompt("Enter admin password:");
-      if (entered !== "Tyfco") {
-        window.alert("Incorrect password.");
+      const entered = window.prompt("Enter admin import password:");
+      if (!entered || entered.trim().length === 0) {
+        window.alert("Password is required.");
         return;
       }
+      setAdminPassword(entered.trim());
       setAdminUnlocked(true);
       setAdminMode(true);
       return;
@@ -329,6 +346,15 @@ export default function Page() {
       <div className="grid">
         <div className="panel">
           <div className="title">Inventory</div>
+          {inventoryLastUpdatedAt ? (
+            <div className="subtle" style={{ marginTop: 2, marginBottom: 10, fontSize: 13 }}>
+              Last inventory update:{" "}
+              {new Date(inventoryLastUpdatedAt).toLocaleString(undefined, {
+                dateStyle: "medium",
+                timeStyle: "short",
+              })}
+            </div>
+          ) : null}
 
           <div className="row" style={{ marginBottom: 12 }}>
             <div style={{ flex: 1 }}>

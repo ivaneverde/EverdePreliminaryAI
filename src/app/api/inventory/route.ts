@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getInventoryItem, InventoryListQuerySchema, listInventory } from "@/lib/inventory";
+import { prisma } from "@/lib/prisma";
 
 export const maxDuration = 60;
 export const dynamic = "force-dynamic";
@@ -22,8 +23,12 @@ export async function GET(req: Request) {
     };
 
     const parsed = InventoryListQuerySchema.parse(query);
-    const items = await listInventory(parsed);
-    return NextResponse.json({ items });
+    const [items, agg] = await Promise.all([
+      listInventory(parsed),
+      prisma.inventoryItem.aggregate({ _max: { updatedAt: true } }),
+    ]);
+    const lastInventoryUpdatedAt = agg._max.updatedAt?.toISOString() ?? null;
+    return NextResponse.json({ items, lastInventoryUpdatedAt });
   } catch (e) {
     console.error("GET /api/inventory", e);
     return NextResponse.json(
