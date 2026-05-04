@@ -19,9 +19,10 @@ function isLegacyTtsModel(model: string) {
 }
 
 const DEFAULT_TTS_INSTRUCTIONS =
-  "Sound like a friendly young American retail host helping shoppers in a plant nursery. " +
-  "Upbeat, conversational, and genuinely enthusiastic—never stiff, monotone, or formal. " +
-  "Use a clear, slightly quicker natural pace with light warmth and energy.";
+  "You sound like a warm American woman in her mid-twenties who works at a plant nursery and loves helping people. " +
+  "Friendly, a little playful, genuinely engaged—like you are chatting with a friend at the shop, not reading a script. " +
+  "Keep energy up: clear, slightly quick natural pacing, light smiles in your tone, never stiff, slow, matronly, or corporate. " +
+  "Do not sound older than your twenties.";
 
 export async function POST(req: Request) {
   try {

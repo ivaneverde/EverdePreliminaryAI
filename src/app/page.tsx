@@ -237,6 +237,35 @@ export default function Page() {
     }
   }
 
+  function stripTextForVoice(raw: string) {
+    return raw
+      .replace(/!?\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, "$1")
+      .replace(/\*\*([^*]+)\*\*/g, "$1")
+      .replace(/https?:\/\/[^\s)]+/g, "")
+      .replace(/[_`#>]/g, " ")
+      .replace(/\n{2,}/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  /** When we are not doing a tight plant+price list, speak the assistant's real reply (trimmed for TTS). */
+  function extractSpokenNarrative(fullText: string, maxChars = 780): string | null {
+    let s = stripTextForVoice(fullText);
+    if (s.length < 45) return null;
+    // Lines that are only labels / links read awkwardly aloud—drop standalone "View Plant" tokens.
+    s = s.replace(/\bview plant\b/gi, "").replace(/\s{2,}/g, " ").trim();
+    if (s.length < 45) return null;
+
+    if (s.length <= maxChars) return s;
+
+    const slice = s.slice(0, maxChars);
+    const lastBreak = Math.max(slice.lastIndexOf(". "), slice.lastIndexOf("! "), slice.lastIndexOf("? "));
+    if (lastBreak > 140) {
+      return s.slice(0, lastBreak + 1).trim();
+    }
+    return `${slice.trim()}…`;
+  }
+
   function buildVoiceSummary(text: string) {
     const joinSpokenList = (items: string[]) => {
       if (items.length <= 1) return items[0] ?? "";
@@ -306,11 +335,16 @@ export default function Page() {
       return `Alright! I found some. We have some ${joinSpokenList(boldPlantNames.slice(0, 5))}. Let me know if you would like to add any of these to your cart!`;
     }
 
-    if (/price|pricing|cost|\$/i.test(cleaned)) {
-      return "I found pricing details for you. Please review the options on screen.";
+    const narrative = extractSpokenNarrative(text);
+    if (narrative) {
+      return narrative;
     }
 
-    return "I found a few options for you. Please review the details on screen.";
+    if (/price|pricing|cost|\$/i.test(cleaned)) {
+      return "I laid out the prices in what I just shared—if you tell me your favorite, I can help you add it to your cart.";
+    }
+
+    return "I've got some ideas for you—tell me what you are leaning toward and I will help you narrow it down.";
   }
 
   async function speakAssistantReply(text: string, options: { useSummary?: boolean } = {}) {
