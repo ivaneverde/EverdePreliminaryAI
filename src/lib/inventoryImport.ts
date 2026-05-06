@@ -92,11 +92,8 @@ function extractRows(
     const sku = firstNonEmpty(cells[idx(index, "SKU")], cells[idx(index, "ITEM")]);
     const farmCode = cleanFarmCode(cells[idx(index, "FARM")]);
     const commonName = cells[idx(index, "COMMON NAME")];
-    const botanicalName = cells[idx(index, "BOTANICAL NAME")];
-    // Keep both common + botanical in `name` so search matches trade names in either column
-    // (e.g. "Golden" in botanical while common is just "Pothos").
-    const name =
-      joinNonEmpty(" ", commonName, botanicalName) ?? firstNonEmpty(botanicalName, commonName, sku);
+    // Business rule: inventory display/search should use COMMON NAME only.
+    const name = firstNonEmpty(commonName, sku);
     const availabilityQty = parseInteger(cells[idx(index, "SALEABLE QTY")]);
     const parsedPriceCents = parsePriceToCents(cells[idx(index, "PRICE")]);
     const priceCents = Number.isFinite(parsedPriceCents) && parsedPriceCents >= 0 ? parsedPriceCents : 0;

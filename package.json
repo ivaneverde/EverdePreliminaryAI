@@ -13,7 +13,8 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy",
     "prisma:seed": "ts-node prisma/seed.ts",
-    "db:setup": "npm run prisma:generate && npm run prisma:deploy && prisma db seed"
+    "db:setup": "npm run prisma:generate && npm run prisma:deploy && prisma db seed",
+    "inventory:compact": "ts-node scripts/compactInventoryReport.ts"
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"
