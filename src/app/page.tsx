@@ -559,7 +559,7 @@ export default function Page() {
             <div>
               <h1 className="brand-title">Everde AI Assistant</h1>
               <div className="version-label">Version 0.5</div>
-              <div className="subtle">Your personal plant-friendly Everde agent and Preliminary Order.</div>
+              <div className="subtle">Your smart Everde AI assistant for plant selection and preliminary orders.</div>
             </div>
           </div>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8 }}>
