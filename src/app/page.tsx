@@ -588,7 +588,7 @@ export default function Page() {
         <div className="panel">
           <div className="title">Inventory</div>
           {inventoryLastUpdatedAt ? (
-            <div className="subtle" style={{ marginTop: 2, marginBottom: 10, fontSize: 13 }}>
+            <div className="subtle" style={{ marginTop: 2, marginBottom: 8, fontSize: 12 }}>
               Last inventory update:{" "}
               {new Date(inventoryLastUpdatedAt).toLocaleString(undefined, {
                 dateStyle: "medium",
@@ -596,7 +596,7 @@ export default function Page() {
               })}
             </div>
           ) : null}
-          <div className="subtle" style={{ marginTop: 2, marginBottom: 10, fontSize: 13 }}>
+          <div className="subtle" style={{ marginTop: 2, marginBottom: 10, fontSize: 12 }}>
             Prices listed are catalog pricing. Landscape Contractors receive a discount, Bulk Orders discounted. Please
             contact your local sales representative for a competitive quote.
           </div>
