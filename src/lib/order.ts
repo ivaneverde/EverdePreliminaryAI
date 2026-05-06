@@ -9,6 +9,7 @@ const PreliminaryOrderLineInputSchema = z.object({
 export const PreliminaryOrderInputSchema = z.object({
   customerName: z.string().min(1),
   contact: z.string().optional().nullable(),
+  specialInstructions: z.string().max(4000).optional().nullable(),
   shipTo: z.string().min(1),
   preferredDeliveryDate: z
     .string()
@@ -65,6 +66,12 @@ export async function createPreliminaryOrder(input: unknown) {
     parsed.contact && typeof parsed.contact === "string" && parsed.contact.trim().length > 0
       ? parsed.contact.trim()
       : null;
+  const specialInstructions =
+    parsed.specialInstructions &&
+    typeof parsed.specialInstructions === "string" &&
+    parsed.specialInstructions.trim().length > 0
+      ? parsed.specialInstructions.trim()
+      : null;
 
   // Do not pass orderNumber into create(): with @id @default(autoincrement()) Prisma assigns it.
   // We still use nextOrderNumber above for AUTO-PO-* (matches DB in normal single-writer use).
@@ -72,6 +79,7 @@ export async function createPreliminaryOrder(input: unknown) {
     data: {
       customerName: parsed.customerName,
       contact,
+      specialInstructions,
       shipTo: parsed.shipTo,
       preferredDeliveryDate: parsed.preferredDeliveryDate ?? undefined,
       poNumber,
@@ -104,6 +112,7 @@ export async function createPreliminaryOrder(input: unknown) {
       createdAt: created.createdAt.toISOString(),
       customerName: created.customerName,
       contact: created.contact,
+      specialInstructions: created.specialInstructions,
       shipTo: created.shipTo,
       preferredDeliveryDate: created.preferredDeliveryDate
         ? created.preferredDeliveryDate.toISOString().slice(0, 10)

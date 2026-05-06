@@ -51,6 +51,7 @@ export default function Page() {
   const [customerName, setCustomerName] = useState("");
   const [contact, setContact] = useState("");
   const [shipTo, setShipTo] = useState("");
+  const [specialInstructions, setSpecialInstructions] = useState("");
   const [preferredDeliveryDate, setPreferredDeliveryDate] = useState<string>("");
   const [poNumber, setPoNumber] = useState("");
 
@@ -422,6 +423,7 @@ export default function Page() {
         customerName: customerName.trim(),
         contact: contact.trim() ? contact.trim() : null,
         shipTo: shipTo.trim(),
+        specialInstructions: specialInstructions.trim() ? specialInstructions.trim() : null,
         preferredDeliveryDate: preferredDeliveryDate ? preferredDeliveryDate : null,
         poNumber: poNumber.trim() ? poNumber.trim() : null,
         items: cartLines.map((l) => ({ sku: l.sku, quantity: l.quantity })),
@@ -440,6 +442,7 @@ export default function Page() {
 
       setCreatedOrder(data.order);
       setCartLines([]);
+      setSpecialInstructions("");
       router.push(`/checkout/${data.order.orderNumber}`);
     } catch (e) {
       setCreateError((e as Error).message ?? "Failed to create order.");
@@ -902,6 +905,21 @@ export default function Page() {
                   PO number (optional). If blank, we auto-create.
                 </div>
                 <input value={poNumber} onChange={(e) => setPoNumber(e.target.value)} placeholder="e.g., PO-12345" />
+              </div>
+            </div>
+
+            <div className="row" style={{ marginBottom: 10 }}>
+              <div style={{ flex: 1 }}>
+                <div className="subtle" style={{ marginBottom: 6 }}>
+                  Special Instructions / Jobsite Notes (optional)
+                </div>
+                <textarea
+                  value={specialInstructions}
+                  onChange={(e) => setSpecialInstructions(e.target.value)}
+                  placeholder="Enter delivery notes, gate codes, jobsite constraints, staging details, etc."
+                  rows={4}
+                  style={{ resize: "vertical", minHeight: 90 }}
+                />
               </div>
             </div>
 

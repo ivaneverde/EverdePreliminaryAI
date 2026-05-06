@@ -85,6 +85,7 @@ export async function buildPreliminaryOrderPdf(order: OrderWithLines): Promise<B
     ["Customer", order.customerName],
     ["Contact", order.contact?.trim() || "Not provided"],
     ["Ship To", order.shipTo],
+    ["Special Instructions / Jobsite Notes", order.specialInstructions?.trim() || "Not provided"],
     [
       "Preferred Delivery Date",
       order.preferredDeliveryDate

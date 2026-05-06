@@ -57,6 +57,9 @@ export default async function CheckoutSummaryPage({
               : "Not provided"}
           </div>
           <div className="subtle">PO Number: {order.poNumber ?? "AUTO"}</div>
+          <div className="subtle">
+            Special Instructions / Jobsite Notes: {order.specialInstructions?.trim() ? order.specialInstructions : "Not provided"}
+          </div>
           <div className="subtle">Status: {order.status}</div>
           <div className="subtle">
             Sales rep (for email copy):{" "}

@@ -144,6 +144,7 @@ function buildPlainText(order: OrderWithLines, salesRepName: string | null): str
     `Customer: ${order.customerName}`,
     `Contact: ${order.contact?.trim() ? order.contact.trim() : "Not provided"}`,
     `Ship to: ${order.shipTo}`,
+    `Special Instructions / Jobsite Notes: ${order.specialInstructions?.trim() ? order.specialInstructions.trim() : "Not provided"}`,
     `Preferred delivery: ${delivery}`,
     `PO: ${order.poNumber ?? "—"}`,
     `Status: ${order.status}`,
@@ -182,6 +183,7 @@ function buildHtml(order: OrderWithLines, salesRepName: string | null): string {
 <tr><td style="padding:2px 12px 2px 0;color:#555">Customer</td><td>${escapeHtml(order.customerName)}</td></tr>
 <tr><td style="padding:2px 12px 2px 0;color:#555">Contact</td><td>${escapeHtml(order.contact?.trim() || "Not provided")}</td></tr>
 <tr><td style="padding:2px 12px 2px 0;color:#555">Ship to</td><td>${escapeHtml(order.shipTo)}</td></tr>
+<tr><td style="padding:2px 12px 2px 0;color:#555">Special Instructions / Jobsite Notes</td><td>${escapeHtml(order.specialInstructions?.trim() || "Not provided")}</td></tr>
 <tr><td style="padding:2px 12px 2px 0;color:#555">Preferred delivery</td><td>${escapeHtml(delivery)}</td></tr>
 <tr><td style="padding:2px 12px 2px 0;color:#555">PO</td><td>${escapeHtml(order.poNumber ?? "—")}</td></tr>
 <tr><td style="padding:2px 12px 2px 0;color:#555">Status</td><td>${escapeHtml(order.status)}</td></tr>

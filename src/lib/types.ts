@@ -30,6 +30,7 @@ export type PreliminaryOrder = {
   createdAt: string;
   customerName: string;
   contact: string | null;
+  specialInstructions: string | null;
   shipTo: string;
   preferredDeliveryDate: string | null;
   poNumber: string | null;

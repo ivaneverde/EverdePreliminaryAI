@@ -27,6 +27,7 @@ model PreliminaryOrder {
   orderNumber              Int                      @id @default(autoincrement())
   customerName             String
   contact                  String?
+  specialInstructions      String?
   salesRepName             String?
   salesRepEmail            String?
   shipTo                   String
