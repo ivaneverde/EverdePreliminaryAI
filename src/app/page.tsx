@@ -922,7 +922,7 @@ export default function Page() {
                   onChange={(e) => setSpecialInstructions(e.target.value)}
                   placeholder="Enter delivery notes, gate codes, jobsite constraints, staging details, etc."
                   rows={4}
-                  style={{ resize: "vertical", minHeight: 90 }}
+                  style={{ width: "100%", resize: "vertical", minHeight: 90 }}
                 />
               </div>
             </div>
