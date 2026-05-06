@@ -596,6 +596,10 @@ export default function Page() {
               })}
             </div>
           ) : null}
+          <div className="subtle" style={{ marginTop: 2, marginBottom: 10, fontSize: 13 }}>
+            Prices listed are catalog pricing. Landscape Contractors receive a discount, Bulk Orders discounted. Please
+            contact your local sales representative for a competitive quote.
+          </div>
 
           <div className="row" style={{ marginBottom: 12 }}>
             <div style={{ flex: 1 }}>
