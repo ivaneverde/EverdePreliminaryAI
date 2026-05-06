@@ -12,7 +12,8 @@ export type ImportedInventoryRow = {
   currency: string;
 };
 
-const REQUIRED_HEADERS = ["SALEABLE QTY", "PRICE"];
+const REQUIRED_HEADERS = ["PRICE"];
+const QTY_HEADERS = ["SALEABLE QTY", "SALEABLE QTY BY GRADE"];
 
 export function parseInventoryHtmlXls(content: string) {
   const $ = cheerio.load(content);
@@ -94,7 +95,9 @@ function extractRows(
     const commonName = cells[idx(index, "COMMON NAME")];
     // Business rule: inventory display/search should use COMMON NAME only.
     const name = firstNonEmpty(commonName, sku);
-    const availabilityQty = parseInteger(cells[idx(index, "SALEABLE QTY")]);
+    const availabilityQty = parseInteger(
+      firstNonEmpty(cells[idx(index, "SALEABLE QTY")], cells[idx(index, "SALEABLE QTY BY GRADE")]) ?? ""
+    );
     const parsedPriceCents = parsePriceToCents(cells[idx(index, "PRICE")]);
     const priceCents = Number.isFinite(parsedPriceCents) && parsedPriceCents >= 0 ? parsedPriceCents : 0;
     const specification = cells[idx(index, "SPECIFICATION")];
@@ -134,7 +137,10 @@ function extractRows(
 }
 
 function containsRequiredHeaders(headers: string[]) {
-  return REQUIRED_HEADERS.every((required) => headers.includes(required));
+  return (
+    REQUIRED_HEADERS.every((required) => headers.includes(required)) &&
+    QTY_HEADERS.some((required) => headers.includes(required))
+  );
 }
 
 function makeHeaderIndex(headers: string[]) {
